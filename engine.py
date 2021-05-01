@@ -6,14 +6,14 @@ import numpy as np
 import math
 
 class CaptureEngine:
-    def __init__(self, webcamNum):
-        self.webcam = cv2.VideoCapture(webcamNum)
-        self.webcam.set(3, 1280)
-        self.webcam.set(4, 720)
-        self.colors = [[104 ,137, 115, 125, 255, 255],
-        [130, 111, 111, 166, 218, 185]]
+    # def __init__(self, webcamNum):
+        # self.webcam = cv2.VideoCapture(webcamNum)
+        # self.webcam.set(3, 1280)
+        # self.webcam.set(4, 720)
+        # self.colors = [[104 ,137, 115, 125, 255, 255],
+        # [130, 111, 111, 166, 218, 185]]
 
-    def find_contours(self, img, imgCopy):
+    def find_contours(img, imgCopy):
         contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         x,y,w,h = 0,0,0,0
         for contour in contours:
@@ -29,7 +29,7 @@ class CaptureEngine:
                 x, y, w, h = cv2.boundingRect(approx)
         return x+w//2, y
 
-    def find_color(self, img):
+    def find_angle(img, colors):
         # h_min = cv2.getTrackbarPos("Hue Min", "TrackBars")
         # h_max = cv2.getTrackbarPos("Hue Max", "TrackBars")
         # s_min = cv2.getTrackbarPos("Sat Min", "TrackBars")
@@ -45,11 +45,11 @@ class CaptureEngine:
         # cv2.imshow("webcam view", img)
         cv2.imshow("hsv version", imgHSV)
         pos = []
-        for i in range(len(self.colors)):
-            lower = np.array(self.colors[i][0:3])
-            upper = np.array(self.colors[i][3:6])
+        for i in range(len(colors)):
+            lower = np.array(colors[i][0:3])
+            upper = np.array(colors[i][3:6])
             mask = cv2.inRange(imgHSV, lower, upper)
-            pos.append(self.find_contours(mask, imgResult))
+            pos.append(CaptureEngine.find_contours(mask, imgResult))
             cv2.imshow(str(i), mask)
         yDiff = pos[1][1] - pos[0][1]
         xDiff = pos[1][0] - pos[0][0]
@@ -57,27 +57,10 @@ class CaptureEngine:
         angle = math.degrees(math.atan(slope))
 
         # print(pos)
-        cv2.imshow("result:", imgResult)
+        cv2.imshow("result:", cv2.line(imgResult, tuple(pos[1]), tuple(pos[0]), (0, 0, 255), 10))
         return angle
 
 
-    def trackbar_change(self, val):
-        pass
+    # def trackbar_change(self, val):
+    #     pass
 
-    def scan(self):
-        # cv2.namedWindow("TrackBars")
-        # cv2.resizeWindow("TrackBars",640,480)
-        # cv2.createTrackbar("Hue Min", "TrackBars", 0,179, self.trackbar_change)
-        # cv2.createTrackbar("Hue Max", "TrackBars", 179,179, self.trackbar_change)
-        # cv2.createTrackbar("Sat Min", "TrackBars", 0,255, self.trackbar_change)
-        # cv2.createTrackbar("Sat Max", "TrackBars", 255,255, self.trackbar_change)
-        # cv2.createTrackbar("Val Min", "TrackBars", 0,255, self.trackbar_change)
-        # cv2.createTrackbar("Val Max", "TrackBars", 255,255, self.trackbar_change)
-
-        while True:
-            working, img = self.webcam.read()
-            ang = self.find_color(img)
-            print(ang)
-
-            if cv2.waitKey(100) & 0xFF ==ord('q'):
-                break
